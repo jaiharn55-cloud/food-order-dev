@@ -4514,7 +4514,160 @@ async function updatePaymentStatus(
 
     function closeMenuForm(){const modal=document.getElementById('menuFormBackdrop');if(modal)modal.classList.remove('show');}
     function menuFormBackdropClick(event){if(event.target&&event.target.id==='menuFormBackdrop')closeMenuForm();}
-    function previewMenuImage(event){const file=event.target.files&&event.target.files[0];if(!file)return;if(file.size>4*1024*1024){alert('รูปใหญ่เกิน 4 MB');event.target.value='';return;}const reader=new FileReader();reader.onload=e=>document.getElementById('menuFormImagePreview').src=e.target.result;reader.readAsDataURL(file);}
+    function previewMenuImage(event) {
+
+  const input =
+    event &&
+    event.target;
+
+  const file =
+    input &&
+    input.files &&
+    input.files[0];
+
+  if (!file) {
+    return;
+  }
+
+  // ตรวจว่าเป็นรูปภาพจริง
+  if (
+    !file.type ||
+    !file.type.startsWith('image/')
+  ) {
+    alert(
+      'ไฟล์ที่เลือกไม่ใช่รูปภาพ'
+    );
+
+    input.value = '';
+    return;
+  }
+
+  // จำกัดขนาด 4 MB
+  if (
+    file.size >
+    4 * 1024 * 1024
+  ) {
+    alert(
+      'รูปใหญ่เกิน 4 MB'
+    );
+
+    input.value = '';
+    return;
+  }
+
+  const reader =
+    new FileReader();
+
+  reader.onload =
+    function(event) {
+
+      const dataUrl =
+        event &&
+        event.target &&
+        event.target.result
+          ? String(
+              event.target.result
+            )
+          : '';
+
+      if (!dataUrl) {
+        alert(
+          'อ่านรูปไม่สำเร็จ'
+        );
+        return;
+      }
+
+      /*
+       * เมนูหลักรุ่นปัจจุบัน
+       */
+      if (
+        input.id ===
+        'menuFormImageFile'
+      ) {
+
+        const preview =
+          document.getElementById(
+            'menuFormImagePreview'
+          );
+
+        if (preview) {
+          preview.src =
+            dataUrl;
+        }
+
+        return;
+      }
+
+      /*
+       * รองรับ Menu Editor รุ่นเก่า
+       * เผื่อมีการใช้งานจากส่วนอื่น
+       */
+      if (
+        input.id ===
+        'menuEditorImageFile'
+      ) {
+
+        menuEditorImageDataUrl_ =
+          dataUrl;
+
+        const preview =
+          document.getElementById(
+            'menuEditorImagePreview'
+          );
+
+        if (preview) {
+          preview.src =
+            dataUrl;
+
+          preview.style.display =
+            'block';
+        }
+      }
+
+    };
+
+  reader.onerror =
+    function() {
+
+      console.error(
+        'FileReader error'
+      );
+
+      alert(
+        'อ่านรูปไม่สำเร็จ กรุณาลองเลือกรูปใหม่'
+      );
+
+    };
+
+  reader.onabort =
+    function() {
+
+      alert(
+        'การอ่านรูปถูกยกเลิก'
+      );
+
+    };
+
+  try {
+
+    reader.readAsDataURL(
+      file
+    );
+
+  } catch (error) {
+
+    console.error(
+      'READ IMAGE ERROR:',
+      error
+    );
+
+    alert(
+      'อ่านรูปไม่สำเร็จ'
+    );
+
+  }
+
+}
 
     async function saveMenuFromForm(event){
       event.preventDefault();
@@ -5315,48 +5468,6 @@ async function updatePaymentStatus(
       );
 
     }
-
-
-    async function previewMenuImage(
-      event
-    ) {
-
-      const file =
-        event.target.files &&
-        event.target.files[0];
-
-      if (!file) {
-        return;
-      }
-
-      try {
-
-        menuEditorImageDataUrl_ =
-          await resizeImageFile_(
-            file
-          );
-
-        const preview =
-          document.getElementById(
-            'menuEditorImagePreview'
-          );
-
-        preview.src =
-          menuEditorImageDataUrl_;
-
-        preview.style.display =
-          'block';
-
-      } catch (error) {
-
-        alert(
-          'อ่านรูปไม่สำเร็จ'
-        );
-
-      }
-
-    }
-
 
     async function uploadAdminImage_(
       dataUrl,
